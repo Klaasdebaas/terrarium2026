@@ -1,0 +1,13 @@
+#pragma once
+#include <stdint.h>
+#include <stddef.h>
+#include "types.h"
+#include "state.h"
+
+void formatDayFileName(char* buf, size_t len, const LocalTime& t);   // "/log/2026-10-31.csv"
+const char* measurementHeader();
+size_t formatMeasurementLine(char* buf, size_t len, const SystemState& s);  // zonder newline
+size_t formatEventLine(char* buf, size_t len, const LocalTime& t, const char* kind, const char* text);
+bool isSafeLogName(const char* name);   // alleen naam, geen pad
+int32_t daysFromCivil(int y, unsigned m, unsigned d);
+bool isExpired(const char* fileName, const LocalTime& today, uint16_t retentionDays);
