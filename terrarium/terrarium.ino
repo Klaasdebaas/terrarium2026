@@ -91,7 +91,7 @@ static WebContext webCtx;
 // Kopie van de instellingen die een herstart (of relais-herinit) vereisen.
 struct Applied {
   bool relayActiveLow;
-  char ssid[33], pass[65], host[33], ntp[64], tz[64];
+  char ssid[33], pass[65], host[33], ntp[64], tz[64], phone[20], pin[9];
 };
 static Applied applied;
 static bool restartPending = false;
@@ -104,6 +104,8 @@ static void captureApplied() {
   strlcpy(applied.host, config.cred.hostname, sizeof(applied.host));
   strlcpy(applied.ntp, config.ntpServer, sizeof(applied.ntp));
   strlcpy(applied.tz, config.tz, sizeof(applied.tz));
+  strlcpy(applied.phone, config.cred.smsPhone, sizeof(applied.phone));
+  strlcpy(applied.pin, config.cred.simPin, sizeof(applied.pin));
 }
 
 static LocalTime currentTime() {
@@ -137,7 +139,8 @@ static void onConfigChanged() {
   if (config.settings.relayActiveLow != applied.relayActiveLow) relaysBegin(config.settings.relayActiveLow);
   if (strcmp(applied.ssid, config.cred.wifiSsid) || strcmp(applied.pass, config.cred.wifiPass) ||
       strcmp(applied.host, config.cred.hostname) || strcmp(applied.ntp, config.ntpServer) ||
-      strcmp(applied.tz, config.tz)) {
+      strcmp(applied.tz, config.tz) ||
+      strcmp(applied.phone, config.cred.smsPhone) || strcmp(applied.pin, config.cred.simPin)) {
     restartPending = true;
     restartAtMs = millis();
   }
@@ -196,7 +199,6 @@ void setup() {
 
 void loop() {
   static uint32_t lastLogKey = 0xFFFFFFFFu, lastMaintDay = 0, lastSdRetryMs = 0;
-  static bool relaysInitDone = false;
   uint32_t now = millis();
   const Settings& s = config.settings;
   char txt[96];
@@ -240,13 +242,12 @@ void loop() {
     state.relayMode[i] = overrides.mode[i];
     state.manualRemainingS[i] = overrideRemainingS(overrides, (RelayId)i, now, s.manualTimeoutMin);
     // Veiligheidsingrepen zijn zonder wijziging van control.h niet te onderscheiden van auto.
-    if (changed[i] && relaysInitDone) {
+    if (changed[i]) {
       snprintf(txt, sizeof(txt), "R%u %s %s (%s)", i + 1, RELAY_NAME[i], co.on[i] ? "AAN" : "UIT",
                overrides.mode[i] == RelayMode::Auto ? "auto" : "hand");
       logEvent("RELAIS", txt);
     }
   }
-  relaysInitDone = true;
 
   // 4. Alarmen
   AlarmInput ai;
@@ -259,9 +260,13 @@ void loop() {
   uint8_t nev = evaluateAlarms(ai, s, alarmState, aev, ALARM_COUNT);
   for (uint8_t k = 0; k < nev; k++) {
     if (aev[k].transition) {
-      snprintf(txt, sizeof(txt), "%s %.1f", alarmKey(aev[k].id),
-               (double)(aev[k].id == A_RH_LOW || aev[k].id == A_RH_HIGH ? snap.rh :
-                        aev[k].id == A_SOURCE_HOT ? snap.heaterTemp : snap.airTemp));
+      AlarmId aid = aev[k].id;
+      if (aid == A_TEMP_LOW || aid == A_TEMP_HIGH || aid == A_SOURCE_HOT || aid == A_RH_LOW || aid == A_RH_HIGH)
+        snprintf(txt, sizeof(txt), "%s %.1f", alarmKey(aid),
+                 (double)(aid == A_RH_LOW || aid == A_RH_HIGH ? snap.rh :
+                          aid == A_SOURCE_HOT ? snap.heaterTemp : snap.airTemp));
+      else
+        snprintf(txt, sizeof(txt), "%s", alarmKey(aid));
       logEvent(aev[k].active ? "ALARM" : "HERSTELD", txt);
     }
     if (aev[k].sendSms) {
