@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <RTClib.h>
+#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include "esp_sntp.h"
@@ -15,8 +16,8 @@ static bool ntpPending = false;      // configTzTime gedaan, wacht op sync
 static bool ntpStarted = false;
 static uint32_t lastNtpStartMs = 0;
 static uint32_t lastRtcReadMs = 0;
-static const char* tzStr = "UTC0";
-static const char* ntpStr = "pool.ntp.org";
+static char tzStr[64] = "UTC0";
+static char ntpStr[64] = "pool.ntp.org";
 
 static const uint32_t NTP_INTERVAL_MS = 24UL * 3600UL * 1000UL;
 static const uint32_t RTC_REREAD_MS = 10UL * 60UL * 1000UL;
@@ -36,9 +37,11 @@ static bool readRtcIntoSystem() {
 }
 
 bool clockBegin(const char* tz, const char* ntpServer) {
-  tzStr = tz;
-  ntpStr = ntpServer;
-  setenv("TZ", tz, 1);
+  strncpy(tzStr, tz, sizeof(tzStr) - 1);
+  tzStr[sizeof(tzStr) - 1] = '\0';
+  strncpy(ntpStr, ntpServer, sizeof(ntpStr) - 1);
+  ntpStr[sizeof(ntpStr) - 1] = '\0';
+  setenv("TZ", tzStr, 1);
   tzset();
   rtcReachable = rtc.begin(&Wire);
   rtcValid = false;
