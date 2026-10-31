@@ -1,5 +1,6 @@
 #include "relays.h"
 #include <Arduino.h>
+#include "driver/gpio.h"
 #include "pins.h"
 
 static bool lowActive = true;
@@ -11,8 +12,11 @@ void relaysBegin(bool activeLow) {
   lowActive = activeLow;
   for (uint8_t i = 0; i < RELAY_COUNT; i++) {
     applied[i] = false;
-    digitalWrite(PIN_RELAY[i], level(false));
+    // Core 3.x negeert digitalWrite() voor pinMode(); zet het uitgangsniveau eerst via de
+    // IDF-driver zodat pinMode(OUTPUT) een actief-laag relais niet even inschakelt.
+    gpio_set_level((gpio_num_t)PIN_RELAY[i], level(false));
     pinMode(PIN_RELAY[i], OUTPUT);
+    digitalWrite(PIN_RELAY[i], level(false));
   }
 }
 
