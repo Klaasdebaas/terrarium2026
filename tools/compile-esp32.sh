@@ -9,7 +9,7 @@ if [ ! -x "$STUB/ctags" ]; then
   printf '#!/bin/sh\nexit 0\n' > "$STUB/ctags"
   chmod +x "$STUB/ctags"
 fi
-arduino-cli compile --fqbn esp32:esp32:esp32c6:CDCOnBoot=cdc \
+arduino-cli compile --fqbn esp32:esp32:esp32c6:CDCOnBoot=cdc,PartitionScheme=min_spiffs \
   --build-property runtime.tools.ctags.path="$STUB" terrarium
 
 # Eenmalige setup in een sandbox waar downloads.arduino.cc geblokkeerd is
