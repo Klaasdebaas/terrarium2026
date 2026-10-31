@@ -126,10 +126,20 @@ static void logEvent(const char* kind, const char* text) {
   loggerEvent(currentTime(), kind, buf);
 }
 
+// Zonder telefoonnummer geen SMS in de wachtrij; eenmalig per opstart een event.
+static void queueSms(const char* sms) {
+  static bool warned = false;
+  if (config.cred.smsPhone[0] == '\0') {
+    if (!warned) { warned = true; logEvent("SMS", "geen telefoonnummer ingesteld"); }
+    return;
+  }
+  modem.enqueue(sms);
+}
+
 static void enqueueInfo(const char* text) {
   char sms[SmsModem::TEXT_MAX];
   formatInfoSms(sms, sizeof(sms), text, currentTime());
-  modem.enqueue(sms);
+  queueSms(sms);
 }
 
 static void onSmsTest() { enqueueInfo("Test-SMS"); }
@@ -205,6 +215,9 @@ void setup() {
   state.timeValid = clockNow(t);
   if (state.timeValid) state.time = t;
   logEvent("START", "opstart");
+  char heap[32];
+  snprintf(heap, sizeof(heap), "vrij geheugen %u", (unsigned)ESP.getFreeHeap());
+  logEvent("HEAP", heap);
   if (src == ConfigSource::Eeprom) logEvent("CONFIG", "bron eeprom");
   else if (src == ConfigSource::Defaults) logEvent("CONFIG", "bron standaard");
   if (cfgRes.rejected > 0) logConfigRejected(cfgRes.rejected, cfgRes.error);
@@ -289,7 +302,7 @@ void loop() {
     if (aev[k].sendSms) {
       char sms[SmsModem::TEXT_MAX];
       formatAlarmSms(sms, sizeof(sms), aev[k].id, aev[k].active, ai, currentTime());
-      modem.enqueue(sms);
+      queueSms(sms);
     }
   }
   for (uint8_t i = 0; i < ALARM_COUNT; i++) state.alarmActive[i] = alarmState.active[i];
@@ -324,6 +337,7 @@ void loop() {
   }
   if (!loggerSdOk() && (uint32_t)(now - lastSdRetryMs) >= 60000) {
     lastSdRetryMs = now;
+    SD.end();   // SD.begin() geeft true als er nog (oud) gemount is: eerst afkoppelen
     if (SD.begin(PIN_SD_CS)) loggerBegin();
   }
 
@@ -345,6 +359,7 @@ void loop() {
 
   // 9. Watchdog
   esp_task_wdt_reset();
+  vTaskDelay(1);   // idle-taak en WiFi-stack lucht geven
 }
 
 #endif
