@@ -3,7 +3,14 @@
 set -e
 export PATH="$HOME/bin:$PATH"
 cd "$(dirname "$0")/.."
-arduino-cli compile --fqbn esp32:esp32:esp32c6:CDCOnBoot=cdc terrarium
+STUB="$HOME/bin/ctags-stub"
+if [ ! -x "$STUB/ctags" ]; then
+  mkdir -p "$STUB"
+  printf '#!/bin/sh\nexit 0\n' > "$STUB/ctags"
+  chmod +x "$STUB/ctags"
+fi
+arduino-cli compile --fqbn esp32:esp32:esp32c6:CDCOnBoot=cdc \
+  --build-property runtime.tools.ctags.path="$STUB" terrarium
 
 # Eenmalige setup in een sandbox waar downloads.arduino.cc geblokkeerd is
 # (github.com en raw.githubusercontent.com werken wel):
@@ -22,7 +29,6 @@ arduino-cli compile --fqbn esp32:esp32:esp32c6:CDCOnBoot=cdc terrarium
 #     olikraus/U8g2_Arduino adafruit/DHT-sensor-library adafruit/Adafruit_Sensor adafruit/Adafruit_BusIO
 #     PaulStoffregen/OneWire milesburton/Arduino-Temperature-Control-Library adafruit/RTClib bblanchon/ArduinoJson
 #
-# STATUS (sandbox): core + libraries install fine, but compile stops with
-#   "fork/exec {runtime.tools.ctags.path}/ctags: no such file or directory"
-# because the builtin arduino:ctags tool is only hosted on downloads.arduino.cc (blocked).
-# Not resolved here; ESP32 compilation then has to be done in the Arduino IDE.
+# STATUS: compile works in the sandbox using a no-op ctags stub (the real ctags tool is only
+# on the blocked downloads.arduino.cc). Because the stub generates no automatic prototypes,
+# every function in terrarium.ino must be declared before use.
