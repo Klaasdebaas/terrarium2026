@@ -48,7 +48,7 @@ void SmsModem::begin(const char* simPin, const char* phone) {
 }
 
 bool SmsModem::ready() const {
-  return st_ == St::Ready || st_ == St::Csq || st_ == St::Prompt || st_ == St::Body;
+  return st_ == St::Ready || st_ == St::Csq || st_ == St::CregCheck || st_ == St::Prompt || st_ == St::Body;
 }
 
 int8_t SmsModem::signal() const { return signal_; }
@@ -262,7 +262,18 @@ void SmsModem::update(uint32_t nowMs) {
       doReady(nowMs);
       break;
     case St::Csq:
-      if (ok || fail) { st_ = St::Ready; doReady(nowMs); }
+      // Elke 60 s samen met de signaalsterkte ook de registratie controleren.
+      if (ok || fail) { registered_ = false; startCmd(St::CregCheck, "AT+CREG?", CMD_TIMEOUT_MS, nowMs); }
+      break;
+    case St::CregCheck:
+      if (ok && !registered_) {
+        // Netwerk kwijt: niet meer ready, opnieuw op registratie wachten (wachtrij blijft).
+        st_ = St::CregIdle;
+        untilMs_ = nowMs + CREG_POLL_MS;
+      } else if (ok || fail) {
+        st_ = St::Ready;   // geregistreerd, of geen antwoord (stilte-detectie vangt een dood modem af)
+        doReady(nowMs);
+      }
       break;
     case St::Prompt:
       if (promptSeen_) {

@@ -31,7 +31,7 @@ class SmsModem {
 
  private:
   enum class St : uint8_t { Idle, Probe, Echo, CpinQuery, CpinEnter, Cmgf, Cscs, CregCmd,
-                            CregIdle, Backoff, SimLocked, Ready, Csq, Prompt, Body };
+                            CregIdle, Backoff, SimLocked, Ready, Csq, CregCheck, Prompt, Body };
   enum class Res : uint8_t { None, Ok, Err };
 
   void feed(int c, uint32_t nowMs);

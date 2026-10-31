@@ -9,6 +9,7 @@ struct FakeModemIO : ModemIO {
   std::string sent;                 // alles wat het modem-object schreef
   std::vector<std::string> cmds;    // per write()-aanroep (zonder byte-writes)
   bool autoCsq = true;              // beantwoord elke AT+CSQ met 18
+  bool autoCreg = true;             // beantwoord ongescripte AT+CREG? met "geregistreerd"
   std::string inbox, pending;       // pending komt pas bij release() beschikbaar
   void expect(const char* p, const char* r) { script.push_back({p, r, false}); }
   int available() override { return (int)inbox.size(); }
@@ -23,6 +24,7 @@ struct FakeModemIO : ModemIO {
   void writeByte(uint8_t b) override { sent += (char)b; }
   void checkReply(const std::string& cmd) {
     if (autoCsq && cmd.compare(0, 6, "AT+CSQ") == 0 && !hasScript("AT+CSQ")) { pending += "+CSQ: 18,99\r\nOK\r\n"; return; }
+    if (autoCreg && cmd == "AT+CREG?\r" && !hasScript("AT+CREG?")) { pending += "+CREG: 0,1\r\nOK\r\n"; return; }
     for (auto& st : script)
       if (!st.used && cmd.compare(0, st.prefix.size(), st.prefix) == 0) { pending += st.reply; st.used = true; return; }
   }
@@ -85,7 +87,7 @@ TEST(creg_polled_every_2s_until_registered) {
   r.f.expect("AT+CREG?\r", "+CREG: 0,5\r\nOK\r\n");
   r.run(3000);
   CHECK(r.m.ready());
-  CHECK_EQ(r.f.count("AT+CREG?\r"), 2);
+  CHECK_EQ(r.f.count("AT+CREG?\r"), 3);   // 2 tot registratie + 1 controle na de eerste CSQ
 }
 
 TEST(init_with_pin) {
@@ -241,7 +243,7 @@ TEST(queue_overflow) {
 }
 
 TEST(silent_modem_reset) {
-  Rig r; initScript(r.f); r.f.autoCsq = false;
+  Rig r; initScript(r.f); r.f.autoCsq = false; r.f.autoCreg = false;
   r.m.begin("", PHONE);
   r.run(1500);
   CHECK(r.m.ready());
@@ -270,4 +272,39 @@ TEST(millis_wrap) {
   SmsEvent ev;
   CHECK(r.m.popEvent(ev));
   CHECK(ev.type == SmsEventType::Sent);
+}
+
+TEST(creg_polled_with_csq_in_ready) {
+  Rig r; initScript(r.f);
+  r.m.begin("", PHONE);
+  r.run(1500);
+  CHECK(r.m.ready());
+  int cregBefore = r.f.count("AT+CREG?\r");
+  CHECK(cregBefore >= 2);             // init + controle na de eerste CSQ
+  // na 60 s: CSQ en CREG; netwerk kwijt -> niet meer ready
+  r.f.expect("AT+CREG?\r", "+CREG: 0,2\r\nOK\r\n");
+  r.f.expect("AT+CREG?\r", "+CREG: 0,3\r\nOK\r\n");
+  r.run(60500);
+  CHECK_EQ(r.f.count("AT+CREG?\r"), cregBefore + 1);
+  CHECK(!r.m.ready());
+  // wachtrij blijft bewaard terwijl er opnieuw op registratie gewacht wordt (elke 2 s)
+  CHECK(r.m.enqueue("na herregistratie"));
+  r.run(2500);
+  CHECK_EQ(r.f.count("AT+CREG?\r"), cregBefore + 2);
+  CHECK(!r.m.ready());
+  CHECK_EQ(r.f.count("AT+CMGS=\"+31600000000\"\r"), 0);
+  // weer geregistreerd (autoCreg): ready, bericht wordt alsnog verstuurd
+  sendOkScript(r.f);
+  r.run(2500);
+  CHECK(r.m.ready());
+  CHECK_EQ(r.f.count("AT+CMGS=\"+31600000000\"\r"), 1);
+}
+
+TEST(creg_roaming_stays_ready) {
+  Rig r; initScript(r.f);
+  r.m.begin("", PHONE);
+  r.run(1500);
+  r.f.expect("AT+CREG?\r", "+CREG: 0,5\r\nOK\r\n");
+  r.run(61000);
+  CHECK(r.m.ready());
 }
