@@ -12,3 +12,25 @@ struct Settings {
   uint16_t smsLimitMin = 60, manualTimeoutMin = 30; bool relayActiveLow = true;
   uint16_t logIntervalMin = 5, retentionDays = 365;
 };
+
+struct Credentials {
+  char wifiSsid[33] = "", wifiPass[65] = "", hostname[33] = "terrarium";
+  char webUser[33] = "admin", webPass[65] = "", smsPhone[20] = "", simPin[9] = "";
+};
+struct Config {
+  Settings settings;
+  Credentials cred;
+  char ntpServer[64] = "pool.ntp.org";
+  char tz[64] = "CET-1CEST,M3.5.0,M10.5.0/3";
+};
+struct ConfigResult { bool ok; uint8_t rejected; char error[96]; };  // ok=false alleen bij onleesbare JSON
+
+#include <stddef.h>
+void setDefaults(Config& c);
+// Ongeldige velden worden genegeerd (rejected++, eerste reden in error). Lege geheimen
+// (wifi.password, web.password, sms.sim_pin) behouden de oude waarde als emptySecretKeepsOld.
+ConfigResult parseConfig(const char* json, Config& c, bool emptySecretKeepsOld);
+// Geeft de lengte (zonder NUL); bij te kleine buffer: 0 en buf leeg.
+size_t serializeConfig(const Config& c, char* buf, size_t len, bool includeSecrets);
+bool parseHHMM(const char* s, uint16_t& minutes);
+uint32_t crc32(const uint8_t* data, size_t len);

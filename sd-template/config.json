@@ -1,0 +1,18 @@
+{
+  "wifi": { "ssid": "", "password": "", "hostname": "terrarium" },
+  "web": { "user": "admin", "password": "" },
+  "sms": { "phone": "+316XXXXXXXX", "sim_pin": "", "limit_min": 60 },
+  "schedule": { "day_start": "08:00", "night_start": "20:00" },
+  "heating": { "day_c": 29.0, "night_c": 22.0, "hyst_c": 0.5, "source_max_c": 30.0 },
+  "humidity": { "on_below": 70, "off_above": 75, "max_on_min": 10, "pause_min": 5 },
+  "vent": { "on_above": 95, "off_below": 90, "interval_min": 120, "duration_min": 5 },
+  "alarms": {
+    "temp_low_c": 20.0, "temp_high_c": 30.0, "temp_delay_min": 5,
+    "rh_low": 70, "rh_high": 95, "rh_delay_min": 30,
+    "wifi_lost_min": 30
+  },
+  "manual_timeout_min": 30,
+  "relay_active_low": true,
+  "log": { "interval_min": 5, "retention_days": 365 },
+  "ntp": { "server": "pool.ntp.org", "tz": "CET-1CEST,M3.5.0,M10.5.0/3" }
+}
