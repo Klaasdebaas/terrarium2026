@@ -16,14 +16,31 @@ void alarmsInit(AlarmState& st) {
 
 const char* alarmKey(AlarmId id) { return id < ALARM_COUNT ? KEYS[id] : ""; }
 
-static void conditions(const AlarmInput& in, const Settings& s, bool cond[], uint32_t delayMs[]) {
+// Bij een onbruikbare sensor blijft de vorige toestand staan (cond = active): geen
+// overgang en dus ook geen valse HERSTELD-melding op basis van een oude waarde.
+static void conditions(const AlarmInput& in, const Settings& s, const AlarmState& st,
+                       bool cond[], uint32_t delayMs[]) {
   for (int i = 0; i < ALARM_COUNT; i++) delayMs[i] = 0;
   uint32_t tempD = (uint32_t)s.tempDelayMin * 60000u, rhD = (uint32_t)s.rhDelayMin * 60000u;
-  cond[A_TEMP_LOW] = in.dhtUsable && in.airTemp < s.tempLowC;   delayMs[A_TEMP_LOW] = tempD;
-  cond[A_TEMP_HIGH] = in.dhtUsable && in.airTemp > s.tempHighC; delayMs[A_TEMP_HIGH] = tempD;
-  cond[A_SOURCE_HOT] = in.dsUsable && in.heaterTemp > s.sourceMaxC;
-  cond[A_RH_LOW] = in.dhtUsable && in.rh < s.rhLow;             delayMs[A_RH_LOW] = rhD;
-  cond[A_RH_HIGH] = in.dhtUsable && in.rh > s.rhHigh;           delayMs[A_RH_HIGH] = rhD;
+  if (in.dhtUsable) {
+    cond[A_TEMP_LOW] = in.airTemp < s.tempLowC;
+    cond[A_TEMP_HIGH] = in.airTemp > s.tempHighC;
+    cond[A_RH_LOW] = in.rh < s.rhLow;
+    cond[A_RH_HIGH] = in.rh > s.rhHigh;
+  } else {
+    cond[A_TEMP_LOW] = st.active[A_TEMP_LOW];
+    cond[A_TEMP_HIGH] = st.active[A_TEMP_HIGH];
+    cond[A_RH_LOW] = st.active[A_RH_LOW];
+    cond[A_RH_HIGH] = st.active[A_RH_HIGH];
+  }
+  delayMs[A_TEMP_LOW] = tempD; delayMs[A_TEMP_HIGH] = tempD;
+  delayMs[A_RH_LOW] = rhD; delayMs[A_RH_HIGH] = rhD;
+  // Warmtebron: aan boven max, pas hersteld onder max - 1 C (zelfde hysterese als de verwarmingsblokkade).
+  if (in.dsUsable)
+    cond[A_SOURCE_HOT] = st.active[A_SOURCE_HOT] ? in.heaterTemp >= s.sourceMaxC - 1.0f
+                                                 : in.heaterTemp > s.sourceMaxC;
+  else
+    cond[A_SOURCE_HOT] = st.active[A_SOURCE_HOT];
   cond[A_DHT_FAIL] = in.dhtFaulty;
   cond[A_DS_FAIL] = in.dsFaulty;
   cond[A_SD_FAIL] = !in.sdOk;
@@ -33,7 +50,7 @@ static void conditions(const AlarmInput& in, const Settings& s, bool cond[], uin
 
 uint8_t evaluateAlarms(const AlarmInput& in, const Settings& s, AlarmState& st, AlarmEvent* out, uint8_t maxOut) {
   bool cond[ALARM_COUNT]; uint32_t delayMs[ALARM_COUNT];
-  conditions(in, s, cond, delayMs);
+  conditions(in, s, st, cond, delayMs);
   const uint32_t limitMs = (uint32_t)s.smsLimitMin * 60000u;
   uint8_t n = 0;
   for (int i = 0; i < ALARM_COUNT; i++) {
