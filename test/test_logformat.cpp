@@ -20,6 +20,10 @@ TEST(measurement_header) {
   CHECK_STR(measurementHeader(), "tijd;lucht_c;rv_pct;bron_c;r1_verw;r2_bevocht;r3_vent;r4_licht;alarmen");
 }
 
+TEST(event_header) {
+  CHECK_STR(eventHeader(), "tijd;soort;omschrijving");
+}
+
 TEST(measurement_line) {
   char b[160]; SystemState s = baseState();
   formatMeasurementLine(b, sizeof b, s);

@@ -6,6 +6,7 @@
 
 void formatDayFileName(char* buf, size_t len, const LocalTime& t);   // "/log/2026-10-31.csv"
 const char* measurementHeader();
+const char* eventHeader();
 size_t formatMeasurementLine(char* buf, size_t len, const SystemState& s);  // zonder newline
 size_t formatEventLine(char* buf, size_t len, const LocalTime& t, const char* kind, const char* text);
 bool isSafeLogName(const char* name);   // alleen naam, geen pad

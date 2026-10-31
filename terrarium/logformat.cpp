@@ -11,6 +11,8 @@ const char* measurementHeader() {
   return "tijd;lucht_c;rv_pct;bron_c;r1_verw;r2_bevocht;r3_vent;r4_licht;alarmen";
 }
 
+const char* eventHeader() { return "tijd;soort;omschrijving"; }
+
 static size_t clampLen(int n, size_t len) {
   if (n < 0) return 0;
   return (size_t)n >= len ? (len ? len - 1 : 0) : (size_t)n;

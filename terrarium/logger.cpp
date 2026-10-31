@@ -53,7 +53,7 @@ void loggerMeasurement(const SystemState& s) {
 void loggerEvent(const LocalTime& t, const char* kind, const char* text) {
   char line[160];
   formatEventLine(line, sizeof line, t, kind, text);
-  if (!appendLine(EVENTS, "tijd;soort;tekst", line)) g_sdOk = false;
+  if (!appendLine(EVENTS, eventHeader(), line)) g_sdOk = false;
 }
 
 bool loggerLastTimestamp(char* buf, size_t len) {
