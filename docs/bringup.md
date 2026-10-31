@@ -31,8 +31,8 @@ Zet ze na afloop weer terug als commentaar.
 - [ ] `TEST_CLOCK` aan, uploaden.
 - [ ] Verwacht: elke seconde een regel met tijd en `rtcOk=1`. Tijd loopt door na stroom eraf/erop (knoopcel).
 - [ ] Zonder WiFi/NTP kan de tijd nog 2000 of fout zijn: dat is acceptabel; stel de tijd later via de webpagina in of via NTP.
-- [ ] Met WiFi (zet SSID in de code of test later in de hoofdapplicatie): tijd klopt met Europe/Amsterdam na NTP-sync.
-- [ ] EEPROM: later in stap 9 testen (config-backup, zie 9.6).
+- [ ] `TEST_CLOCK` test alleen de RTC (geen WiFi); de NTP-sync test je in stap 9 (item "NTP-sync").
+- [ ] EEPROM: later in stap 9 testen (item "Config-backup").
 
 ## 2. DHT22
 - [ ] Aansluiten: data = GPIO3, 3,3 V, GND; 10 kOhm pull-up naar 3,3 V (niet nodig als de module die al heeft).
@@ -75,7 +75,7 @@ Zet ze na afloop weer terug als commentaar.
 - [ ] Voeding: eigen step-down van 2 A piek of meer, 1000 uF of meer dicht bij de module, gemeenschappelijke GND. Antenne aangesloten.
 - [ ] UART (3,3 V-niveau): SIM7600 TXD naar GPIO7 (ESP RX), GPIO15 (ESP TX) naar SIM7600 RXD, 115200 baud.
 - [ ] SIM-kaart zonder of met pincode; zet `sim_pin` in `config.json`. Een **verkeerde pincode** wordt niet herhaald: de modem blijft geblokkeerd tot herstart (bescherming tegen PUK-vergrendeling). Controleer de pincode dus eerst in een telefoon.
-- [ ] Telefoonnummer in `sms.phone` als `+316XXXXXXXX`.
+- [ ] Vul je eigen telefoonnummer in `sms.phone` in (internationaal formaat, `+316...`). De placeholder `+316XXXXXXXX` uit `sd-template` wordt geweigerd: bij opstart volgt dan een event `CONFIG 1 waarde(n) geweigerd: sms.phone...` en eenmalig `SMS geen telefoonnummer ingesteld`; er worden geen SMS'en verstuurd.
 - [ ] Verwacht: op het scherm `GSM:` met een signaalwaarde (niet `--`) binnen ongeveer een minuut.
 - [ ] Test-SMS: log in op `http://terrarium.local/settings` en gebruik de knop voor een test-SMS (`POST /api/sms/test`). Verwacht: SMS "Test-SMS" op je telefoon en een `SMS verzonden`-regel in het eventbestand van deze maand (`events-JJJJ-MM.csv`).
 - [ ] Bij opstart komt ook een herstart-SMS aan.
@@ -89,12 +89,14 @@ Zet ze na afloop weer terug als commentaar.
 ## 9. Webinterface
 - [ ] `http://terrarium.local` en `http://<ip>` tonen het dashboard (zonder inloggen), ververst elke 5 s.
 - [ ] `/api/status` geeft JSON.
-- [ ] `/logs` toont de lijst; download van een CSV werkt. (Het downloaden blokkeert de lus kort.)
+- [ ] `/logs` toont de lijst; download van een CSV werkt. Events staan per maand in `events-JJJJ-MM.csv`. Een download wordt in blokken verstuurd en na 15 s afgebroken (de regeling staat zolang stil).
 - [ ] Wijzigen zonder inloggen wordt geweigerd; met gebruiker/wachtwoord uit de config lukt het.
 - [ ] Zonder ingesteld webwachtwoord worden alle wijzigingen geweigerd.
-- [ ] Relais op AAN/UIT/AUTO zetten werkt; handstand vervalt na 30 min.
+- [ ] Relais op AAN/UIT/AUTO zetten werkt en geeft een event `HAND R<n> <naam> AAN|UIT|AUTO (web)`; handstand vervalt na 30 min.
+- [ ] Een ongeldige waarde opslaan (bv. `off_above` lager dan `on_below`) geeft een melding op de pagina en een event `CONFIG 1 waarde(n) geweigerd: ...`.
 - [ ] Tijd zetten via de webpagina werkt.
-- [ ] 9.6 Config-backup: wijzig een instelling, haal de SD-kaart eruit en herstart: de instelling blijft behouden (uit EEPROM; event `CONFIG bron eeprom`).
+- [ ] NTP-sync: na verbinden met WiFi verschijnt het event `NTP tijd gesynchroniseerd` en klopt de tijd met Europe/Amsterdam.
+- [ ] Config-backup: wijzig een instelling, haal de SD-kaart eruit en herstart: de instelling blijft behouden (uit EEPROM; event `CONFIG bron eeprom`).
 - [ ] Wijzigen van wifi, ntp, tijdzone, hostnaam, sms-telefoon of pincode herstart het apparaat na 2 s (verwacht gedrag).
 
 ## 10. Integratietests (bank, spec §11 stap 3)
@@ -112,7 +114,7 @@ Relaismodule nog zonder 230 V; kijk naar de LED's, het scherm, het log en de SMS
 ## 11. Duurtest (spec §11 stap 4)
 - [ ] Minimaal **72 uur** onbeheerd draaien, met de echte belasting waar mogelijk.
 - [ ] Geen ongeplande herstarts (geen herstart-SMS, geen `START` in `events-JJJJ-MM.csv` buiten je eigen ingrepen).
-- [ ] Vrij geheugen: de `HEAP`-regels in `events-JJJJ-MM.csv` (dagelijks om 03:00) vertonen geen dalende trend.
+- [ ] Vrij geheugen: de `HEAP`-regels in `events-JJJJ-MM.csv` (bij opstart en dagelijks om 03:00) vertonen geen dalende trend.
 - [ ] Logbestanden volledig: 288 regels per dag bij 5-minutenlog.
 - [ ] Lusduur normaal < 50 ms (zie beperkingen).
 
@@ -179,7 +181,7 @@ Relaismodule nog zonder 230 V; kijk naar de LED's, het scherm, het log en de SMS
 | FR-W4 | JSON-API `/api/status` | Stap 9 | |
 | FR-N1 | Regeling werkt door bij WiFi-verlies; herverbinden elke 60 s | Stap 10: router uit/aan | |
 | FR-N2 | Zonder WiFi-gegevens AP `Terrarium-Setup` op 192.168.4.1 | Stap 8 | |
-| FR-N3 | DS3231 is klok; NTP dagelijks en bij opstart; Europe/Amsterdam | Stap 1; zomer/wintertijd controleren | |
+| FR-N3 | DS3231 is klok; NTP dagelijks en bij opstart; Europe/Amsterdam | Stap 1 (RTC), stap 9 item "NTP-sync"; zomer/wintertijd controleren | |
 | FR-N4 | Relais bij opstart direct uit; regeling binnen 10 s | Stap 4; stroom eraf/erop | |
-| FR-N5 | Zonder SD: config uit EEPROM, anders standaard | Stap 9.6: kaart eruit + herstart | |
+| FR-N5 | Zonder SD: config uit EEPROM, anders standaard | Stap 9, item "Config-backup": kaart eruit + herstart | |
 | FR-N6 | Watchdog herstart bij lus > 30 s | Testlus tijdelijk laten hangen (`while(1);`) | |

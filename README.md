@@ -33,7 +33,10 @@ micro-SD-breakout zonder regelaar. Pinnen: `terrarium/pins.h`; schema's en voedi
 2. Kopieer `sd-template/config.json` naar de root van de kaart als `/config.json`.
 3. Vul in: `wifi.ssid` en `wifi.password`, `web.password`, `sms.phone` (formaat `+316XXXXXXXX`) en
    `sms.sim_pin`. Gebruik nooit echte gegevens in de repository; `config.json` hoort alleen op de kaart.
-4. De map `/log` wordt automatisch aangemaakt.
+   Laat je de placeholder `+316XXXXXXXX` staan, dan wordt die geweigerd (event `CONFIG ... geweigerd`)
+   en worden er geen SMS'en verstuurd.
+4. De map `/log` wordt automatisch aangemaakt: meetbestanden per dag (`JJJJ-MM-DD.csv`) en
+   gebeurtenissen per maand (`events-JJJJ-MM.csv`).
 
 ## Eerste start
 - Zonder `wifi.ssid` start de ESP32 het access point **Terrarium-Setup**; ga naar `http://192.168.4.1`.
