@@ -115,20 +115,22 @@ static void handleSmsTest() {
 }
 
 static void handleLogs() {
-  String html;
-  html.reserve(2048);
-  html = F("<!doctype html><html lang=nl><head><meta charset=utf-8>"
+  server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  server.send(200, "text/html; charset=utf-8", "");
+  server.sendContent(F("<!doctype html><html lang=nl><head><meta charset=utf-8>"
            "<meta name=viewport content='width=device-width,initial-scale=1'>"
            "<title>Logbestanden</title><style>body{font-family:sans-serif;margin:1em;max-width:30em}"
-           "li{margin:.4em 0}</style></head><body><h1>Logbestanden</h1><p><a href='/'>&larr; Dashboard</a></p><ul>");
+           "li{margin:.4em 0}</style></head><body><h1>Logbestanden</h1><p><a href='/'>&larr; Dashboard</a></p><ul>"));
   File dir = SD.open("/log");
   int n = 0;
   if (dir && dir.isDirectory()) {
+    char row[160];
     for (File f = dir.openNextFile(); f; f = dir.openNextFile()) {
       const char* name = f.name();
       if (!f.isDirectory() && isSafeLogName(name)) {
-        html += F("<li><a href='/logs/"); html += name; html += F("'>"); html += name;
-        html += F("</a> ("); html += (unsigned long)f.size(); html += F(" bytes)</li>");
+        snprintf(row, sizeof(row), "<li><a href='/logs/%s'>%s</a> (%lu bytes)</li>", name, name,
+                 (unsigned long)f.size());
+        server.sendContent(row);
         n++;
       }
       f.close();
@@ -136,16 +138,18 @@ static void handleLogs() {
     }
   }
   if (dir) dir.close();
-  if (n == 0) html += F("<li>Geen logbestanden</li>");
-  html += F("</ul></body></html>");
-  server.send(200, "text/html; charset=utf-8", html);
+  if (n == 0) server.sendContent(F("<li>Geen logbestanden</li>"));
+  server.sendContent(F("</ul></body></html>"));
+  server.sendContent("");
 }
 
 static void handleLogFile() {
-  String name = server.pathArg(0);
-  if (!isSafeLogName(name.c_str())) { server.send(404, "text/plain", "Niet gevonden"); return; }
-  String path = "/log/" + name;
-  File f = SD.open(path.c_str(), FILE_READ);
+  char path[48];
+  const String& arg = server.pathArg(0);
+  if (!isSafeLogName(arg.c_str())) { server.send(404, "text/plain", "Niet gevonden"); return; }
+  int n = snprintf(path, sizeof(path), "/log/%s", arg.c_str());
+  if (n <= 0 || n >= (int)sizeof(path)) { server.send(404, "text/plain", "Niet gevonden"); return; }
+  File f = SD.open(path, FILE_READ);
   if (!f || f.isDirectory()) { if (f) f.close(); server.send(404, "text/plain", "Niet gevonden"); return; }
   server.streamFile(f, "text/csv");
   f.close();
