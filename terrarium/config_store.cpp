@@ -76,8 +76,9 @@ bool backupToEeprom(const Config& c) {
 }
 }  // namespace
 
-ConfigSource configLoad(Config& c) {
+ConfigSource configLoad(Config& c, ConfigResult* result) {
   setDefaults(c);
+  if (result) { result->ok = true; result->rejected = 0; result->error[0] = 0; }
   File f = SD.open(SD_FILE, FILE_READ);
   if (f) {
     size_t n = f.size() <= JSON_MAX ? f.read((uint8_t*)g_json, JSON_MAX) : 0;
@@ -86,8 +87,10 @@ ConfigSource configLoad(Config& c) {
     if (n > 0) {
       Config tmp;
       setDefaults(tmp);
-      if (parseConfig(g_json, tmp, false).ok) {
+      ConfigResult r = parseConfig(g_json, tmp, false);
+      if (r.ok) {
         c = tmp;
+        if (result) *result = r;
         backupToEeprom(c);
         return ConfigSource::Sd;
       }
@@ -96,7 +99,12 @@ ConfigSource configLoad(Config& c) {
   if (eepromLoadJson() > 0) {
     Config tmp;
     setDefaults(tmp);
-    if (parseConfig(g_json, tmp, false).ok) { c = tmp; return ConfigSource::Eeprom; }
+    ConfigResult r = parseConfig(g_json, tmp, false);
+    if (r.ok) {
+      c = tmp;
+      if (result) *result = r;
+      return ConfigSource::Eeprom;
+    }
   }
   return ConfigSource::Defaults;
 }

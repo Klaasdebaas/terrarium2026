@@ -81,6 +81,7 @@ static void handlePostConfig() {
   d["ok"] = r.ok;
   d["rejected"] = r.rejected;
   d["error"] = r.error;
+  if (r.rejected > 0 && g->onConfigRejected) g->onConfigRejected(r.rejected, r.error);
   if (r.ok) {
     configSave(*g->config);
     if (g->onConfigChanged) g->onConfigChanged();
@@ -93,6 +94,7 @@ static void handleRelay() {
   RelayId r; RelayMode m;
   if (!parseRelayCommand(server.arg("plain").c_str(), r, m)) { sendOk(400, false, "ongeldig commando"); return; }
   setOverride(*g->overrides, r, m, millis());
+  if (g->onRelayCommand) g->onRelayCommand(r, m);
   sendOk(200, true, nullptr);
 }
 

@@ -147,6 +147,19 @@ static void onConfigChanged() {
   captureApplied();
 }
 
+static void logConfigRejected(uint8_t n, const char* err) {
+  char txt[128];
+  snprintf(txt, sizeof(txt), "%u waarde(n) geweigerd: %s", (unsigned)n, err);
+  logEvent("CONFIG", txt);
+}
+
+static void onRelayCommand(RelayId r, RelayMode m) {
+  char txt[64];
+  const char* what = m == RelayMode::ManualOn ? "AAN" : m == RelayMode::ManualOff ? "UIT" : "AUTO";
+  snprintf(txt, sizeof(txt), "R%u %s %s (web)", (unsigned)r + 1, RELAY_NAME[r], what);
+  logEvent("HAND", txt);
+}
+
 static void watchdogBegin() {
   esp_task_wdt_config_t cfg = {};
   cfg.timeout_ms = 30000;
@@ -162,7 +175,8 @@ void setup() {
   Wire.begin(PIN_SDA, PIN_SCL);
   SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI);
   SD.begin(PIN_SD_CS);
-  ConfigSource src = configLoad(config);
+  ConfigResult cfgRes;
+  ConfigSource src = configLoad(config, &cfgRes);
   if (!config.settings.relayActiveLow) relaysBegin(false);
   captureApplied();
   clockBegin(config.tz, config.ntpServer);
@@ -177,6 +191,8 @@ void setup() {
   webCtx.state = &state;
   webCtx.onSmsTest = onSmsTest;
   webCtx.onConfigChanged = onConfigChanged;
+  webCtx.onConfigRejected = logConfigRejected;
+  webCtx.onRelayCommand = onRelayCommand;
   webBegin(webCtx);
   watchdogBegin();
   controlInit(ctlMem);
@@ -191,6 +207,7 @@ void setup() {
   logEvent("START", "opstart");
   if (src == ConfigSource::Eeprom) logEvent("CONFIG", "bron eeprom");
   else if (src == ConfigSource::Defaults) logEvent("CONFIG", "bron standaard");
+  if (cfgRes.rejected > 0) logConfigRejected(cfgRes.rejected, cfgRes.error);
   char last[32], msg[64];
   if (loggerLastTimestamp(last, sizeof(last)) && last[0]) snprintf(msg, sizeof(msg), "Herstart. Laatste log %s", last);
   else snprintf(msg, sizeof(msg), "Herstart");

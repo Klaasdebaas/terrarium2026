@@ -6,6 +6,8 @@
 struct WebContext {
   Config* config; Overrides* overrides; const SystemState* state;
   void (*onSmsTest)(); void (*onConfigChanged)();
+  void (*onConfigRejected)(uint8_t n, const char* err);   // POST /api/config met geweigerde waarden
+  void (*onRelayCommand)(RelayId r, RelayMode m);          // handbediening via POST /api/relay
 };
 
 // WebServer op poort 80. In AP-modus (lege ssid) alleen GET / (setupformulier) en POST /api/setup.
