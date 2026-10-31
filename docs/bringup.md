@@ -67,7 +67,7 @@ Zet ze na afloop weer terug als commentaar.
 ## 6. SD-kaart
 - [ ] Aansluiten: CS = GPIO18, SCK = GPIO21, MOSI = GPIO19, MISO = GPIO20 (gedeeld met het scherm), 3,3 V. Module zonder regelaar/niveau-omzetter.
 - [ ] Kaart FAT32 met `/config.json` (zie README).
-- [ ] Upload de hoofdapplicatie. Verwacht: geen SD-alarm; na opstart bestaat `/log/events.csv` met een `START`-regel.
+- [ ] Upload de hoofdapplicatie. Verwacht: geen SD-alarm; na opstart bestaat `/log/events-JJJJ-MM.csv` (huidige maand) met een `START`-regel.
 - [ ] Na de eerstvolgende 5-minutengrens (xx:00, xx:05, ...) komt een regel in `/log/JJJJ-MM-DD.csv`.
 - [ ] Kaart eruit: regeling blijft draaien, SD-alarm volgt. Kaart terug: loggen hervat binnen circa 60 s.
 
@@ -77,7 +77,7 @@ Zet ze na afloop weer terug als commentaar.
 - [ ] SIM-kaart zonder of met pincode; zet `sim_pin` in `config.json`. Een **verkeerde pincode** wordt niet herhaald: de modem blijft geblokkeerd tot herstart (bescherming tegen PUK-vergrendeling). Controleer de pincode dus eerst in een telefoon.
 - [ ] Telefoonnummer in `sms.phone` als `+316XXXXXXXX`.
 - [ ] Verwacht: op het scherm `GSM:` met een signaalwaarde (niet `--`) binnen ongeveer een minuut.
-- [ ] Test-SMS: log in op `http://terrarium.local/settings` en gebruik de knop voor een test-SMS (`POST /api/sms/test`). Verwacht: SMS "Test-SMS" op je telefoon en een `SMS verzonden`-regel in `events.csv`.
+- [ ] Test-SMS: log in op `http://terrarium.local/settings` en gebruik de knop voor een test-SMS (`POST /api/sms/test`). Verwacht: SMS "Test-SMS" op je telefoon en een `SMS verzonden`-regel in het eventbestand van deze maand (`events-JJJJ-MM.csv`).
 - [ ] Bij opstart komt ook een herstart-SMS aan.
 - [ ] Voedingsproblemen (modem reset tijdens verzenden)? Controleer piekstroom en elco.
 
@@ -111,8 +111,8 @@ Relaismodule nog zonder 230 V; kijk naar de LED's, het scherm, het log en de SMS
 
 ## 11. Duurtest (spec §11 stap 4)
 - [ ] Minimaal **72 uur** onbeheerd draaien, met de echte belasting waar mogelijk.
-- [ ] Geen ongeplande herstarts (geen herstart-SMS, geen `START` in `events.csv` buiten je eigen ingrepen).
-- [ ] Vrij geheugen: de `HEAP`-regels in `events.csv` (dagelijks om 03:00) vertonen geen dalende trend.
+- [ ] Geen ongeplande herstarts (geen herstart-SMS, geen `START` in `events-JJJJ-MM.csv` buiten je eigen ingrepen).
+- [ ] Vrij geheugen: de `HEAP`-regels in `events-JJJJ-MM.csv` (dagelijks om 03:00) vertonen geen dalende trend.
 - [ ] Logbestanden volledig: 288 regels per dag bij 5-minutenlog.
 - [ ] Lusduur normaal < 50 ms (zie beperkingen).
 
@@ -167,8 +167,8 @@ Relaismodule nog zonder 230 V; kijk naar de LED's, het scherm, het log en de SMS
 | FR-A13 | SMS naar één nummer, +31-formaat | Stap 7: test-SMS | |
 | FR-A14 | Alarmgrenzen en vertragingen instelbaar | Stap 9: instellingenpagina | |
 | FR-L1 | Meetregel elke 5 min in `/log/JJJJ-MM-DD.csv` | Stap 6/11: bestand controleren | |
-| FR-L2 | Gebeurtenissen in `/log/events.csv` | Stap 10: events vergelijken met acties | |
-| FR-L3 | Meetbestanden > 365 d verwijderd om 03:00; events jaarlijks geroteerd | Retentie tijdelijk op 1 dag; jaarwisseling | |
+| FR-L2 | Gebeurtenissen in `/log/events-JJJJ-MM.csv` | Stap 10: events vergelijken met acties | |
+| FR-L3 | Meetbestanden > 365 d verwijderd om 03:00; eventbestanden per maand, zelfde termijn vanaf de volgende maand | Retentie tijdelijk op 1 dag; oud dag- en eventbestand (vorige maand) op SD zetten | |
 | FR-L4 | Logbestanden downloadbaar via web | Stap 9: `/logs` | |
 | FR-S1 | Eén scherm met alle statusinfo | Stap 5 | |
 | FR-S2 | Onderste regel knippert met alarmtekst bij alarm | Stap 10: alarm opwekken, scherm bekijken | |

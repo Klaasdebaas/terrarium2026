@@ -80,3 +80,37 @@ TEST(days_from_civil) {
   CHECK_EQ(daysFromCivil(2026, 10, 31) - daysFromCivil(2025, 10, 31), 365);
   CHECK_EQ(daysFromCivil(2024, 3, 1) - daysFromCivil(2024, 2, 28), 2);
 }
+
+TEST(event_file_name_monthly) {
+  char b[32]; LocalTime t = {2026, 10, 31, 1, 2, 3};
+  formatEventFileName(b, sizeof b, t);
+  CHECK_STR(b, "/log/events-2026-10.csv");
+  CHECK(isSafeLogName(b + 5));
+  LocalTime jan = {2027, 1, 1, 0, 0, 0};
+  formatEventFileName(b, sizeof b, jan);
+  CHECK_STR(b, "/log/events-2027-01.csv");
+}
+
+TEST(expired_monthly) {
+  LocalTime today = {2026, 10, 31, 0, 0, 0};
+  // leeftijd telt vanaf de 1e van de volgende maand
+  CHECK(isExpiredMonthly("events-2025-09.csv", today, 365));    // 2025-10-01: 395 dagen
+  CHECK(!isExpiredMonthly("events-2025-10.csv", today, 365));   // 2025-11-01: 364 dagen
+  CHECK(!isExpiredMonthly("events-2026-10.csv", today, 0));     // lopende maand nooit
+  CHECK(isExpiredMonthly("events-2026-09.csv", today, 0));
+  CHECK(!isExpiredMonthly("events-2026-09.csv", today, 30));    // 2026-10-01: precies 30
+  CHECK(isExpiredMonthly("events-2026-09.csv", today, 29));
+  LocalTime jan = {2026, 1, 2, 0, 0, 0};
+  CHECK(isExpiredMonthly("events-2025-12.csv", jan, 0));        // jaarovergang: 2026-01-01
+  CHECK(!isExpiredMonthly("events-2025-12.csv", jan, 1));
+  // geen maandbestand
+  CHECK(!isExpiredMonthly("events.csv", today, 0));
+  CHECK(!isExpiredMonthly("events-0000-00.csv", today, 0));
+  CHECK(!isExpiredMonthly("events-2025-13.csv", today, 0));
+  CHECK(!isExpiredMonthly("events-2025-1.csv", today, 0));
+  CHECK(!isExpiredMonthly("events-2025-01.csv.bak", today, 0));
+  CHECK(!isExpiredMonthly("2025-01-01.csv", today, 0));
+  CHECK(!isExpiredMonthly(nullptr, today, 0));
+  // dagbestanden-check raakt maandbestanden niet
+  CHECK(!isExpired("events-2020-01.csv", today, 0));
+}

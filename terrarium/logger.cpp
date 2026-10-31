@@ -7,7 +7,6 @@
 
 namespace {
 const char* const LOG_DIR = "/log";
-const char* const EVENTS = "/log/events.csv";
 const char* const LAST = "/log/last.txt";
 bool g_sdOk = false;
 
@@ -51,9 +50,10 @@ void loggerMeasurement(const SystemState& s) {
 }
 
 void loggerEvent(const LocalTime& t, const char* kind, const char* text) {
-  char line[160];
+  char line[160], name[32];
   formatEventLine(line, sizeof line, t, kind, text);
-  if (!appendLine(EVENTS, eventHeader(), line)) g_sdOk = false;
+  formatEventFileName(name, sizeof name, t);   // per maand: /log/events-YYYY-MM.csv
+  if (!appendLine(name, eventHeader(), line)) g_sdOk = false;
 }
 
 bool loggerLastTimestamp(char* buf, size_t len) {
@@ -69,7 +69,8 @@ bool loggerLastTimestamp(char* buf, size_t len) {
 
 void loggerDailyMaintenance(const LocalTime& t, uint16_t retentionDays) {
   // Namen eerst verzamelen, daarna verwijderen (niet wijzigen tijdens iteratie).
-  char expired[8][16];
+  // Dagbestanden (YYYY-MM-DD.csv) en maandelijkse eventbestanden (events-YYYY-MM.csv).
+  char expired[8][24];
   uint8_t count = 0;
   File dir = SD.open(LOG_DIR);
   if (!dir) { g_sdOk = false; return; }
@@ -79,7 +80,8 @@ void loggerDailyMaintenance(const LocalTime& t, uint16_t retentionDays) {
     const char* full = e.name();
     const char* slash = strrchr(full, '/');
     const char* base = slash ? slash + 1 : full;
-    if (!e.isDirectory() && count < 8 && strlen(base) < sizeof expired[0] && isExpired(base, t, retentionDays))
+    bool old = isExpired(base, t, retentionDays) || isExpiredMonthly(base, t, retentionDays);
+    if (!e.isDirectory() && count < 8 && strlen(base) < sizeof expired[0] && old)
       strcpy(expired[count++], base);
     e.close();
   }
@@ -88,10 +90,5 @@ void loggerDailyMaintenance(const LocalTime& t, uint16_t retentionDays) {
     char path[32];
     snprintf(path, sizeof path, "%s/%s", LOG_DIR, expired[i]);
     SD.remove(path);
-  }
-  if (t.month == 1 && t.day == 1 && SD.exists(EVENTS)) {
-    char target[40];
-    snprintf(target, sizeof target, "%s/events-%d.csv", LOG_DIR, (int)t.year - 1);
-    if (!SD.exists(target)) SD.rename(EVENTS, target);
   }
 }

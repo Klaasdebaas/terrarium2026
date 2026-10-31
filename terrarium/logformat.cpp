@@ -7,6 +7,10 @@ void formatDayFileName(char* buf, size_t len, const LocalTime& t) {
   snprintf(buf, len, "/log/%04d-%02u-%02u.csv", (int)t.year, (unsigned)t.month, (unsigned)t.day);
 }
 
+void formatEventFileName(char* buf, size_t len, const LocalTime& t) {
+  snprintf(buf, len, "/log/events-%04d-%02u.csv", (int)t.year, (unsigned)t.month);
+}
+
 const char* measurementHeader() {
   return "tijd;lucht_c;rv_pct;bron_c;r1_verw;r2_bevocht;r3_vent;r4_licht;alarmen";
 }
@@ -83,5 +87,24 @@ bool isExpired(const char* fileName, const LocalTime& today, uint16_t retentionD
   unsigned d = (unsigned)((p[8] - '0') * 10 + (p[9] - '0'));
   if (m < 1 || m > 12 || d < 1 || d > 31) return false;
   int32_t age = daysFromCivil(today.year, today.month, today.day) - daysFromCivil(y, m, d);
+  return age > (int32_t)retentionDays;
+}
+
+
+bool isExpiredMonthly(const char* name, const LocalTime& today, uint16_t retentionDays) {
+  static const char PREFIX[] = "events-";
+  const size_t P = sizeof PREFIX - 1;
+  if (!name || strlen(name) != P + 11 || strncmp(name, PREFIX, P) != 0) return false;
+  const char* p = name + P;   // "YYYY-MM.csv"
+  for (int i = 0; i < 7; i++) {
+    if (i == 4) { if (p[i] != '-') return false; }
+    else if (p[i] < '0' || p[i] > '9') return false;
+  }
+  if (strcmp(p + 7, ".csv") != 0) return false;
+  int y = (p[0] - '0') * 1000 + (p[1] - '0') * 100 + (p[2] - '0') * 10 + (p[3] - '0');
+  unsigned m = (unsigned)((p[5] - '0') * 10 + (p[6] - '0'));
+  if (y == 0 || m < 1 || m > 12) return false;
+  if (m == 12) { y++; m = 1; } else m++;   // 1e van de volgende maand
+  int32_t age = daysFromCivil(today.year, today.month, today.day) - daysFromCivil(y, m, 1);
   return age > (int32_t)retentionDays;
 }

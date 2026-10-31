@@ -3,6 +3,7 @@
 #include <uri/UriBraces.h>
 #include <SD.h>
 #include <ArduinoJson.h>
+#include <esp_task_wdt.h>
 #include <string.h>
 #include <stdio.h>
 #include "web.h"
@@ -143,6 +144,24 @@ static void handleLogs() {
   server.sendContent("");
 }
 
+// Stuurt een (mogelijk groot) logbestand in blokken van 1 KB. Reset de watchdog per blok en
+// breekt af als de client wegvalt of het geheel langer dan 15 s duurt (hoofdlus niet te lang bezet).
+static void streamLogFile(File& f) {
+  static const uint32_t STREAM_CAP_MS = 15000;
+  static uint8_t chunk[1024];
+  server.setContentLength(f.size());
+  server.send(200, "text/csv", "");
+  auto& client = server.client();
+  const uint32_t startMs = millis();
+  for (;;) {
+    esp_task_wdt_reset();
+    if (!client.connected() || (uint32_t)(millis() - startMs) >= STREAM_CAP_MS) { client.stop(); return; }
+    int n = f.read(chunk, sizeof chunk);
+    if (n <= 0) return;
+    if (client.write(chunk, (size_t)n) != (size_t)n) { client.stop(); return; }
+  }
+}
+
 static void handleLogFile() {
   char path[48];
   const String& arg = server.pathArg(0);
@@ -151,7 +170,7 @@ static void handleLogFile() {
   if (n <= 0 || n >= (int)sizeof(path)) { server.send(404, "text/plain", "Niet gevonden"); return; }
   File f = SD.open(path, FILE_READ);
   if (!f || f.isDirectory()) { if (f) f.close(); server.send(404, "text/plain", "Niet gevonden"); return; }
-  server.streamFile(f, "text/csv");
+  streamLogFile(f);
   f.close();
 }
 

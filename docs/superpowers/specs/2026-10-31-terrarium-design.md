@@ -91,8 +91,8 @@ Een zelfstandige besturing die het klimaat in een terrarium automatisch regelt e
 | ID | Requirement |
 |---|---|
 | FR-L1 | Elke 5 min wordt een meetregel weggeschreven naar `/log/JJJJ-MM-DD.csv`. |
-| FR-L2 | Gebeurtenissen (relais schakelt, alarm aan/hersteld, SMS verstuurd/mislukt, handbediening, config gewijzigd, herstart, WiFi weg/terug, NTP-sync) gaan naar `/log/events.csv`. |
-| FR-L3 | Meetbestanden ouder dan 365 dagen worden automatisch verwijderd (dagelijks om 03:00). `events.csv` wordt geroteerd naar `events-JJJJ.csv` bij jaarwisseling. |
+| FR-L2 | Gebeurtenissen (relais schakelt, alarm aan/hersteld, SMS verstuurd/mislukt, handbediening, config gewijzigd, herstart, WiFi weg/terug, NTP-sync) gaan naar een maandbestand `/log/events-JJJJ-MM.csv`. |
+| FR-L3 | Meetbestanden ouder dan 365 dagen worden automatisch verwijderd (dagelijks om 03:00). Eventbestanden `events-JJJJ-MM.csv` worden met dezelfde bewaartermijn verwijderd, gerekend vanaf de 1e van de maand na de laatste regel. |
 | FR-L4 | Logbestanden zijn via de webpagina te downloaden. |
 
 #### Display
@@ -386,7 +386,7 @@ tijd;lucht_c;rv_pct;bron_c;r1_verw;r2_bevocht;r3_vent;r4_licht;alarmen
 ```
 Een ongeldige meting wordt als leeg veld weggeschreven.
 
-**Events** `/log/events.csv`:
+**Events** `/log/events-JJJJ-MM.csv` (een bestand per maand, zodat een download klein blijft):
 ```
 tijd;soort;omschrijving
 2026-10-31 14:23:05;ALARM;temp_high 30.4C
