@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "web.h"
 #include "webpage.h"
-#include "network.h"
+#include "net_wifi.h"
 #include "config_store.h"
 #include "web_json.h"
 #include "logformat.h"

@@ -55,7 +55,7 @@
 | `terrarium/display_format.h/.cpp` | ja | 6 schermregels | 10 |
 | `terrarium/display.h/.cpp` | nee | U8g2 ST7565R | 10 |
 | `terrarium/web_json.h/.cpp` | ja | status-JSON, verzoeken parsen | 11 |
-| `terrarium/network.h/.cpp` | nee | WiFi, AP, mDNS | 12 |
+| `terrarium/net_wifi.h/.cpp` | nee | WiFi, AP, mDNS | 12 |
 | `terrarium/web.h/.cpp`, `webpage.h` | nee | WebServer, HTML | 12 |
 | `test/Makefile`, `test/minitest.h`, `test/test_*.cpp` | — | pc-tests | 1–11 |
 | `sd-template/config.json` | — | voorbeeldconfig | 5 |
@@ -522,11 +522,11 @@
 ### Task 12: Netwerk en webserver
 
 **Files:**
-- Create: `terrarium/network.h`, `terrarium/network.cpp`, `terrarium/web.h`, `terrarium/web.cpp`, `terrarium/webpage.h`
+- Create: `terrarium/net_wifi.h`, `terrarium/net_wifi.cpp`, `terrarium/web.h`, `terrarium/web.cpp`, `terrarium/webpage.h`
 
 **Interfaces:**
 - Consumes: `Config`, `parseConfig`, `serializeConfig` (Task 5); `configSave` (Task 5); `buildStatusJson`, `parseRelayCommand`, `parseIsoLocal`, `parseSetupRequest` (Task 11); `isSafeLogName` (Task 6); `clockSetLocal` (Task 7); `setOverride` (Task 2).
-- Produces (`network.h`):
+- Produces (`net_wifi.h`):
   ```cpp
   void networkBegin(const Config& c);      // lege ssid → AP "Terrarium-Setup" (open, 192.168.4.1); anders STA + hostname + mDNS "<hostname>.local"
   void networkUpdate(uint32_t nowMs);      // STA: bij geen verbinding elke 60 s WiFi.reconnect(); events WIFI weg/terug
