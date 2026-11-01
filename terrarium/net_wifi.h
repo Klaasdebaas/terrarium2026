@@ -1,5 +1,5 @@
-#ifndef TERRARIUM_NETWORK_H
-#define TERRARIUM_NETWORK_H
+#ifndef TERRARIUM_NET_WIFI_H
+#define TERRARIUM_NET_WIFI_H
 #include <stdint.h>
 #include <stddef.h>
 #include "config.h"
@@ -12,4 +12,4 @@ int8_t networkRssi();
 void networkIp(char* buf, size_t len);
 bool networkTakeEvent(bool& connected);  // true bij verandering van verbinding
 
-#endif  // TERRARIUM_NETWORK_H
+#endif  // TERRARIUM_NET_WIFI_H

@@ -18,7 +18,7 @@
 #include "logger.h"
 #include "logformat.h"
 #include "display.h"
-#include "network.h"
+#include "net_wifi.h"
 #include "web.h"
 
 // Tijdelijke testcode voor bring-up: haal commentaar weg om te gebruiken.

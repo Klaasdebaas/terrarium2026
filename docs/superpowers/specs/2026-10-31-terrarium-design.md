@@ -206,7 +206,7 @@ terrarium/                 Arduino-sketchmap (naam = .ino)
   sms.h / .cpp             SIM7600 AT-state-machine + wachtrij
   logger.h / .cpp          CSV-logboek, events, opruimen
   display.h / .cpp         U8g2-schermopbouw
-  network.h / .cpp         WiFi, AP-setupmodus, mDNS
+  net_wifi.h / .cpp        WiFi, AP-setupmodus, mDNS
   web.h / .cpp             WebServer, pagina's, API
   webpage.h                HTML/JS van de webpagina als PROGMEM-string
 test/                      pc-tests voor control en alarms (g++)

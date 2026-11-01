@@ -3,7 +3,7 @@
 #include <ESPmDNS.h>
 #include <stdio.h>
 #include <string.h>
-#include "network.h"
+#include "net_wifi.h"
 
 static bool g_ap = false;
 static bool g_connected = false;     // laatst gemeld
