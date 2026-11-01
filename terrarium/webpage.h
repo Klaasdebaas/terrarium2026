@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_WEBPAGE_H
+#define TERRARIUM_WEBPAGE_H
 #include <pgmspace.h>
 
 static const char PAGE_DASHBOARD[] PROGMEM = R"HTML(<!doctype html><html lang="nl"><head><meta charset="utf-8">
@@ -137,3 +138,5 @@ function go(){
  .catch(function(){document.getElementById("r").textContent="Geen verbinding"});
  return false}
 </script></body></html>)HTML";
+
+#endif  // TERRARIUM_WEBPAGE_H

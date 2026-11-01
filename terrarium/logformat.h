@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_LOGFORMAT_H
+#define TERRARIUM_LOGFORMAT_H
 #include <stdint.h>
 #include <stddef.h>
 #include "types.h"
@@ -15,3 +16,5 @@ int32_t daysFromCivil(int y, unsigned m, unsigned d);
 bool isExpired(const char* fileName, const LocalTime& today, uint16_t retentionDays);   // "YYYY-MM-DD.csv"
 // "events-YYYY-MM.csv": leeftijd gerekend vanaf de 1e van de volgende maand.
 bool isExpiredMonthly(const char* name, const LocalTime& today, uint16_t retentionDays);
+
+#endif  // TERRARIUM_LOGFORMAT_H

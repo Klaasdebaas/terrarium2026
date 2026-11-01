@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_CONTROL_H
+#define TERRARIUM_CONTROL_H
 #include <stdint.h>
 #include "types.h"
 #include "config.h"
@@ -23,3 +24,5 @@ void overridesInit(Overrides& o);
 void setOverride(Overrides& o, RelayId r, RelayMode mode, uint32_t nowMs);
 void expireOverrides(Overrides& o, uint32_t nowMs, uint16_t timeoutMin);
 uint32_t overrideRemainingS(const Overrides& o, RelayId r, uint32_t nowMs, uint16_t timeoutMin);
+
+#endif  // TERRARIUM_CONTROL_H

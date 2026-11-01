@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_ALARMS_H
+#define TERRARIUM_ALARMS_H
 #include <stdint.h>
 #include <stddef.h>
 #include "types.h"
@@ -23,3 +24,5 @@ uint8_t evaluateAlarms(const AlarmInput& in, const Settings& s, AlarmState& st, 
 const char* alarmKey(AlarmId id);
 size_t formatAlarmSms(char* buf, size_t len, AlarmId id, bool active, const AlarmInput& in, const LocalTime& t);
 size_t formatInfoSms(char* buf, size_t len, const char* text, const LocalTime& t);
+
+#endif  // TERRARIUM_ALARMS_H

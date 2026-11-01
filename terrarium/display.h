@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_DISPLAY_H
+#define TERRARIUM_DISPLAY_H
 #include <stdint.h>
 #include "state.h"
 
@@ -6,3 +7,5 @@
 void displayBegin();
 // Herschildert elke 1000 ms; bij actieve alarmen wisselt regel 6 elke 2000 ms.
 void displayUpdate(const SystemState& s, uint32_t nowMs);
+
+#endif  // TERRARIUM_DISPLAY_H

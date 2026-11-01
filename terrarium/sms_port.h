@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_SMS_PORT_H
+#define TERRARIUM_SMS_PORT_H
 #include <Arduino.h>
 #include "sms_modem.h"
 
@@ -14,3 +15,5 @@ class SerialModemIO : public ModemIO {
 };
 
 void smsPortBegin();   // Serial1.begin(115200, SERIAL_8N1, PIN_MODEM_RX, PIN_MODEM_TX)
+
+#endif  // TERRARIUM_SMS_PORT_H

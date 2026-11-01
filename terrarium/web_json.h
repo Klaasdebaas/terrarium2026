@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_WEB_JSON_H
+#define TERRARIUM_WEB_JSON_H
 // Pure JSON-opmaak en -parsing voor de web-API. Geen hardware.
 #include <stddef.h>
 #include "state.h"
@@ -13,3 +14,5 @@ bool parseIsoLocal(const char* s, LocalTime& t);
 // {"ssid":..,"password":..,"web_password":..}; ssid verplicht, web_password >= 6 tekens.
 bool parseSetupRequest(const char* json, char* ssid, size_t ssidLen, char* pass, size_t passLen,
                        char* webPass, size_t webPassLen);
+
+#endif  // TERRARIUM_WEB_JSON_H

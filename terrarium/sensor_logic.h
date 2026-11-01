@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_SENSOR_LOGIC_H
+#define TERRARIUM_SENSOR_LOGIC_H
 #include <stdint.h>
 
 bool validDht(float tempC, float rh);
@@ -13,3 +14,5 @@ private:
   uint8_t invalidStreak_ = 0;
   bool everValid_ = false;
 };
+
+#endif  // TERRARIUM_SENSOR_LOGIC_H

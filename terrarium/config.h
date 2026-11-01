@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_CONFIG_H
+#define TERRARIUM_CONFIG_H
 #include <stdint.h>
 
 // Instellingen met standaardwaarden uit spec 5.1. De rest van config.h volgt in Task 5.
@@ -34,3 +35,5 @@ ConfigResult parseConfig(const char* json, Config& c, bool emptySecretKeepsOld);
 size_t serializeConfig(const Config& c, char* buf, size_t len, bool includeSecrets);
 bool parseHHMM(const char* s, uint16_t& minutes);
 uint32_t crc32(const uint8_t* data, size_t len);
+
+#endif  // TERRARIUM_CONFIG_H

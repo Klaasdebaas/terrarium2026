@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_STATE_H
+#define TERRARIUM_STATE_H
 #include <stdint.h>
 #include "types.h"
 
@@ -11,3 +12,5 @@ struct SystemState {
   bool gsmOk; int8_t gsmSignal;                            // 0..31, -1 onbekend
   bool sdOk, rtcOk; uint32_t uptimeS;
 };
+
+#endif  // TERRARIUM_STATE_H

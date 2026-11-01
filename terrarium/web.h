@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_WEB_H
+#define TERRARIUM_WEB_H
 #include "config.h"
 #include "control.h"
 #include "state.h"
@@ -13,3 +14,5 @@ struct WebContext {
 // WebServer op poort 80. In AP-modus (lege ssid) alleen GET / (setupformulier) en POST /api/setup.
 void webBegin(WebContext& ctx);
 void webUpdate();   // server.handleClient(); voert ook de uitgestelde herstart uit
+
+#endif  // TERRARIUM_WEB_H

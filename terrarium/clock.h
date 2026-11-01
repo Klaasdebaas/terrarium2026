@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_CLOCK_H
+#define TERRARIUM_CLOCK_H
 #include <stdint.h>
 #include "types.h"
 
@@ -8,3 +9,5 @@ bool clockNow(LocalTime& out);        // false als jaar < 2024
 bool clockRtcOk();                    // RTC bereikbaar en geldige tijd
 bool clockSetLocal(const LocalTime& t);
 bool clockTakeSyncEvent();            // true eenmaal na elke geslaagde NTP-sync
+
+#endif  // TERRARIUM_CLOCK_H

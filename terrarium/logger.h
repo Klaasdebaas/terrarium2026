@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_LOGGER_H
+#define TERRARIUM_LOGGER_H
 #include <stdint.h>
 #include <stddef.h>
 #include "types.h"
@@ -10,3 +11,5 @@ void loggerEvent(const LocalTime& t, const char* kind, const char* text);  // /l
 void loggerDailyMaintenance(const LocalTime& t, uint16_t retentionDays);
 bool loggerLastTimestamp(char* buf, size_t len);
 bool loggerSdOk();
+
+#endif  // TERRARIUM_LOGGER_H

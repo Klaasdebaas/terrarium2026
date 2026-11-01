@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_NETWORK_H
+#define TERRARIUM_NETWORK_H
 #include <stdint.h>
 #include <stddef.h>
 #include "config.h"
@@ -10,3 +11,5 @@ bool networkApMode();
 int8_t networkRssi();
 void networkIp(char* buf, size_t len);
 bool networkTakeEvent(bool& connected);  // true bij verandering van verbinding
+
+#endif  // TERRARIUM_NETWORK_H

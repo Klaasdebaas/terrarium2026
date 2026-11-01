@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_CONFIG_STORE_H
+#define TERRARIUM_CONFIG_STORE_H
 #include "config.h"
 
 // Hardware: SD (/config.json) en AT24C32-EEPROM (I2C 0x57) als backup.
@@ -13,3 +14,5 @@ ConfigSource configLoad(Config& c, ConfigResult* result = nullptr);
 // SD: schrijf /config.tmp, verwijder /config.json, hernoem; daarna EEPROM als inhoud gewijzigd.
 // true als minstens SD of EEPROM is bijgewerkt/actueel.
 bool configSave(const Config& c);
+
+#endif  // TERRARIUM_CONFIG_STORE_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TERRARIUM_SMS_MODEM_H
+#define TERRARIUM_SMS_MODEM_H
 #include <stdint.h>
 #include <stddef.h>
 
@@ -64,3 +65,5 @@ class SmsModem {
   SmsEvent events_[EVENT_MAX];
   uint8_t evHead_, evCount_;
 };
+
+#endif  // TERRARIUM_SMS_MODEM_H
